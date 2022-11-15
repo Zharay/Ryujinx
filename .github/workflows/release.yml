@@ -92,7 +92,6 @@ jobs:
 
       - name: Pushing new release
         uses: ncipollo/release-action@v1
-        env:
         with:
           name: ${{ steps.version_info.outputs.build_version }}
           artifacts: "release_output/*.tar.gz,release_output/*.zip"
