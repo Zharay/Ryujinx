@@ -17,7 +17,8 @@ namespace Ryujinx.Graphics.Gpu.Memory
         private readonly GpuContext _context;
         private readonly GpuChannel _channel;
 
-        public int UnalignedStorageBuffers { get; private set; }
+        private int _unalignedStorageBuffers;
+        public bool HasUnalignedStorageBuffers => _unalignedStorageBuffers > 0;
 
         private IndexBuffer _indexBuffer;
         private readonly VertexBuffer[] _vertexBuffers;
@@ -219,9 +220,9 @@ namespace Ryujinx.Graphics.Gpu.Memory
         /// <param name="gpuVa">Start GPU virtual address of the buffer</param>
         private void RecordStorageAlignment(BuffersPerStage buffers, int index, ulong gpuVa)
         {
-            bool unaligned = (gpuVa & 15) != 0;
+            bool unaligned = (gpuVa & (Constants.StorageAlignment - 1)) != 0;
 
-            if (unaligned || UnalignedStorageBuffers > 0)
+            if (unaligned || HasUnalignedStorageBuffers)
             {
                 // Check if the alignment changed for this binding.
 
@@ -230,7 +231,7 @@ namespace Ryujinx.Graphics.Gpu.Memory
                 if (currentUnaligned != unaligned)
                 {
                     currentUnaligned = unaligned;
-                    UnalignedStorageBuffers += unaligned ? 1 : -1;
+                    _unalignedStorageBuffers += unaligned ? 1 : -1;
                 }
             }
         }

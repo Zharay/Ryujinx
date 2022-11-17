@@ -240,7 +240,7 @@ namespace Ryujinx.Graphics.Gpu.Engine.Threed
             }
 
             // Some draw parameters are used to restrict the vertex buffer size,
-            // but they can't be used on direct draws because their values are unknown in this case.
+            // but they can't be used on indirect draws because their values are unknown in this case.
             // When switching between indirect and non-indirect draw, we need to
             // make sure the vertex buffer sizes are still correct.
             if (_drawState.DrawIndirect != _prevDrawIndirect)
@@ -293,9 +293,12 @@ namespace Ryujinx.Graphics.Gpu.Engine.Threed
         /// </summary>
         private void CommitBindings()
         {
+            var buffers = _channel.BufferManager;
+            var hasUnaligned = buffers.HasUnalignedStorageBuffers;
+
             UpdateStorageBuffers();
 
-            if (!_channel.TextureManager.CommitGraphicsBindings(_shaderSpecState))
+            if (!_channel.TextureManager.CommitGraphicsBindings(_shaderSpecState) || (buffers.HasUnalignedStorageBuffers != hasUnaligned))
             {
                 // Shader must be reloaded.
                 UpdateShaderState();
@@ -1362,7 +1365,7 @@ namespace Ryujinx.Graphics.Gpu.Engine.Threed
                 _state.State.AlphaTestRef,
                 ref attributeTypes,
                 _drawState.HasConstantBufferDrawParameters,
-                _channel.BufferManager.UnalignedStorageBuffers > 0);
+                _channel.BufferManager.HasUnalignedStorageBuffers);
         }
 
         /// <summary>
